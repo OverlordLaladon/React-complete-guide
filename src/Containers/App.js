@@ -8,6 +8,21 @@ import ErrorBoundary from "../Components/ErrorBoundary/ErrorBoundary";
 // import Radium, { StyleRoot } from "radium";
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+    console.log("[App.js] constructor");
+    //Old way of incicializing state
+    // this.state = {
+    //   persons: [
+    //     { id: "sad", name: "Max", age: 28 },
+    //     { id: "fdf", name: "Manu", age: 29 },
+    //     { id: "gdg", name: "Stephanie", age: 26 }
+    //   ],
+    //   otherState: "some other value",
+    //   showPersons: false
+    // };
+  }
+
   state = {
     persons: [
       { id: "sad", name: "Max", age: 28 },
@@ -17,6 +32,19 @@ class App extends Component {
     otherState: "some other value",
     showPersons: false
   };
+
+  static getDerivedStateFromProps(props, state) {
+    console.log("[App.js] getDerivedStateFromProps", props);
+    return state;
+  }
+
+  // componentWillMount() {
+  //   console.log("[App.js] componentWillMount");
+  // }
+
+  componentDidMount() {
+    console.log("[App.js] componentDidMount");
+  }
 
   nameChangedHandler = (event, id) => {
     const personIndex = this.state.persons.findIndex(p => {
@@ -52,6 +80,7 @@ class App extends Component {
   };
 
   render() {
+    console.log("[App.js] render");
     let persons = null;
 
     if (this.state.showPersons) {
@@ -69,6 +98,7 @@ class App extends Component {
       // <StyleRoot>
       <div className={classes.App}>
         <Cockpit
+          title={this.props.appTitle}
           showPersons={this.state.showPersons}
           persons={this.state.persons}
           clicked={this.togglePersonsHandler}

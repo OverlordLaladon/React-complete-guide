@@ -3,6 +3,10 @@ import classes from "./App.module.css";
 import Person from "../Components/Persons/Person/Person";
 import Persons from "../Components/Persons/Persons";
 import Cockpit from "../Components/Cockpit/Cockpit";
+import withClass from "../hoc/withClass";
+//lowercase withClass bc its no longer a component, but a function, what returns a component function
+import Aux from "../hoc/auxiliary";
+import AuthContext from "../Context/auth-context";
 
 import ErrorBoundary from "../Components/ErrorBoundary/ErrorBoundary";
 // import Radium, { StyleRoot } from "radium";
@@ -30,7 +34,10 @@ class App extends Component {
       { id: "gdg", name: "Stephanie", age: 26 }
     ],
     otherState: "some other value",
-    showPersons: false
+    showPersons: false,
+    showCockpit: true,
+    changeCounter: 0,
+    authenticated: false
   };
 
   static getDerivedStateFromProps(props, state) {
@@ -44,6 +51,15 @@ class App extends Component {
 
   componentDidMount() {
     console.log("[App.js] componentDidMount");
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log("[App.js] shouldComponentUpdate");
+    return true;
+  }
+
+  componentDidUpdate() {
+    console.log("[App.js] componentDidUpdate");
   }
 
   nameChangedHandler = (event, id) => {
@@ -61,7 +77,12 @@ class App extends Component {
     const persons = [...this.state.persons];
     persons[personIndex] = person;
 
-    this.setState({ persons: persons });
+    this.setState((prevState, props) => {
+      return {
+        persons: persons,
+        changeCounter: prevState.changeCounter + 1 //best practise
+      };
+    });
   };
 
   deletePersonHandler = personIndex => {
@@ -79,6 +100,10 @@ class App extends Component {
     this.setState({ showPersons: !doesShow });
   };
 
+  loginHandler = () => {
+    this.setState({ authenticated: true });
+  };
+
   render() {
     console.log("[App.js] render");
     let persons = null;
@@ -89,6 +114,7 @@ class App extends Component {
           persons={this.state.persons}
           clicked={this.deletePersonHandler}
           changed={this.nameChangedHandler}
+          isAuthenticated={this.state.authenticated}
         />
       );
     }
@@ -96,19 +122,35 @@ class App extends Component {
     return (
       // //Radium Styleroot
       // <StyleRoot>
-      <div className={classes.App}>
-        <Cockpit
-          title={this.props.appTitle}
-          showPersons={this.state.showPersons}
-          persons={this.state.persons}
-          clicked={this.togglePersonsHandler}
-        />
-        {persons}
-      </div>
+      <Aux>
+        <button
+          onClick={() => {
+            this.setState({ showCockpit: false });
+          }}
+        >
+          Remove Cockpit
+        </button>
+        <AuthContext.Provider
+          value={{
+            authenticated: this.state.authenticated,
+            login: this.loginHandler
+          }}
+        >
+          {this.state.showCockpit ? (
+            <Cockpit
+              title={this.props.appTitle}
+              showPersons={this.state.showPersons}
+              personsLength={this.state.persons.length}
+              clicked={this.togglePersonsHandler}
+            />
+          ) : null}
+          {persons}
+        </AuthContext.Provider>
+      </Aux>
       // </StyleRoot>
     );
     // return React.createElement('div', {className: 'App'}, React.createElement('h1', null, 'Does this work now?'));
   }
 }
 
-export default /*Radium(*/ App /*)*/;
+export default /*Radium(*/ withClass(App, classes.App) /*)*/;
